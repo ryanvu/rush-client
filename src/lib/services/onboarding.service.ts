@@ -11,6 +11,7 @@ export type OnboardingResponse = {
 };
 
 export async function getUserOnboarding(): Promise<OnboardingResponse> {
+
   try {
     const supabaseSession = JSON.parse(localStorage.getItem('supabase.auth') || '{}');
     const accessToken = supabaseSession?.access_token;

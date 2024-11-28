@@ -19,7 +19,7 @@
 		{ name: 'Settings', href: '/settings', icon: Settings }
 	];
 
-  const user = auth.getUser();
+  const user = $derived(auth.getUser());
 
 	let footerTitle = $derived(user ? user.email : 'Get Started');
 	const items = $derived(user ? authItems : getStartedItems);

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { auth } from '$lib/supabase'
   import { goto } from '$app/navigation';
+  import { auth } from '$lib/state/auth.svelte'
 
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
@@ -13,15 +13,10 @@
   let loading = $state(false)
   let error: string | null = $state(null)
   
-  // Watch for auth state changes
   $effect(() => {
-    const unsubUser = auth.subscribe(async (user) => {
-      if (user) {
-        await goto('/dashboard');
-      }
-    });
-    
-    return unsubUser;
+    if (auth.getUser()) {
+      goto('/dashboard');
+    }
   });
   
   async function handleSubmit() {

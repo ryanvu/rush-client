@@ -1,7 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { writable } from 'svelte/store';
-import type { User } from '@supabase/supabase-js';
-import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

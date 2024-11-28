@@ -5,6 +5,7 @@
   import { Label } from "$lib/components/ui/label";
   import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "$lib/components/ui/card";
   import { Alert, AlertDescription } from "$lib/components/ui/alert";
+	import { auth } from '$lib/state/auth.svelte';
   
   let email = '';
   let password = '';
