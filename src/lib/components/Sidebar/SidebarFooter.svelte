@@ -7,7 +7,7 @@
 	import Logout from 'lucide-svelte/icons/log-out';
 	import Play from 'lucide-svelte/icons/play';
 	import Settings from 'lucide-svelte/icons/settings';
-	import { auth } from '$lib/supabase';
+  import { auth } from '$lib/state/auth.svelte';
 
 	const getStartedItems = [
 		{ name: 'Sign Up', href: '/register', icon: Play },
@@ -19,8 +19,10 @@
 		{ name: 'Settings', href: '/settings', icon: Settings }
 	];
 
-	let footerTitle = $derived($auth ? $auth.email : 'Get Started');
-	const items = $derived($auth ? authItems : getStartedItems);
+  const user = auth.getUser();
+
+	let footerTitle = $derived(user ? user.email : 'Get Started');
+	const items = $derived(user ? authItems : getStartedItems);
 </script>
 
 <Sidebar.Footer>
@@ -34,8 +36,8 @@
 							class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center"
 						>
               <Avatar.Root class="h-5 w-5 rounded-full">
-                <Avatar.Image src={$auth?.user_metadata?.avatar_url || ''} />
-                <Avatar.Fallback class="bg-sidebar-foreground text-sidebar-accent text-sm">{ $auth?.email?.charAt(0).toUpperCase() }</Avatar.Fallback>
+                <Avatar.Image src={user?.user_metadata?.avatar_url || ''} />
+                <Avatar.Fallback class="bg-sidebar-foreground text-sidebar-accent text-sm">{ user?.email?.charAt(0).toUpperCase() }</Avatar.Fallback>
               </Avatar.Root>
 							<div
 								class="flex w-full items-center justify-between group-data-[collapsible=icon]:hidden"

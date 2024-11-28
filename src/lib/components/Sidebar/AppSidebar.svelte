@@ -4,7 +4,7 @@
 	import House from 'lucide-svelte/icons/house';
   import BookUser from 'lucide-svelte/icons/book-user';
   import Zap from 'lucide-svelte/icons/zap';
-  import { auth } from '$lib/supabase';
+  import { auth } from '$lib/state/auth.svelte';
   import { page } from '$app/stores';
 
 	let items = [
@@ -17,7 +17,9 @@
     { name: 'Customers', href: '/customers', icon: BookUser },
   ]
 
-  let itemsToShow = $derived($auth ? authItems : items);
+
+  const isAuthenticated = $derived(!!auth.getUser());
+  let itemsToShow = $derived(isAuthenticated ? authItems : items);
   let currentPath = $derived($page.url.pathname);
 
 </script>

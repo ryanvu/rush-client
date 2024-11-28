@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { auth } from '$lib/supabase';
   import { goto } from '$app/navigation';
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";

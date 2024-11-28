@@ -3,7 +3,6 @@
   import * as Collapsible from '$lib/components/ui/collapsible';
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
-	import { auth } from '$lib/supabase';
 	import { Progress } from '$lib/components/ui/progress/index.js';
 	import {
 		getUserOnboarding,
@@ -39,12 +38,10 @@
 
 	// Fetch data when auth changes
 	$effect(() => {
-		if (!$auth?.id) return;
 		getUserOnboarding()
 			.then((result) => (onboardingData = result))
 			.catch((error) => console.error(error))
 			.finally(() => (loading = false));
-		$inspect(onboardingData);
 	});
 
 	let value = $derived.by(() => {
