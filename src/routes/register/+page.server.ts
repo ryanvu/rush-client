@@ -2,7 +2,7 @@ import { fail, redirect, type Actions } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms';
 import type { PageServerLoad } from './$types';
 import { zod } from 'sveltekit-superforms/adapters';
-import { loginSchema } from '$lib/components/Auth/schemas/auth.schema';
+import { registerSchema } from '$lib/components/Auth/schemas/auth.schema';
 
 export const load: PageServerLoad = async ({ locals: { session } }) => {
   if (session) {
@@ -10,19 +10,19 @@ export const load: PageServerLoad = async ({ locals: { session } }) => {
   }
 
   return {
-    form: await superValidate(zod(loginSchema))
+    form: await superValidate(zod(registerSchema))
   };
 };
 
 export const actions: Actions = {
   default: async ({ request, locals: { supabase } }) => {
-    const form = await superValidate(request, zod(loginSchema));
+    const form = await superValidate(request, zod(registerSchema));
     
     if (!form.valid) {
       return fail(400, { form });
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signUp({
       email: form.data.email,
       password: form.data.password
     });
@@ -34,3 +34,4 @@ export const actions: Actions = {
     throw redirect(302, '/dashboard');
   }
 };
+

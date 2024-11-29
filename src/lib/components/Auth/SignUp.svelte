@@ -1,107 +1,85 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { Button } from "$lib/components/ui/button";
-  import { Input } from "$lib/components/ui/input";
-  import { Label } from "$lib/components/ui/label";
-  import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "$lib/components/ui/card";
-  import { Alert, AlertDescription } from "$lib/components/ui/alert";
-	import { auth } from '$lib/state/auth.svelte';
-  
-  let email = '';
-  let password = '';
-  let confirmPassword = '';
-  let loading = false;
-  let error: string | null = null;
-  
-  async function handleSubmit() {
-    if (password !== confirmPassword) {
-      error = 'Passwords do not match';
-      return;
-    }
-    
-    loading = true;
-    error = null;
-    
-    try {
-      const { user } = await auth.signUp(email, password);
-      
-      if (user) {
-        // Successful registration, redirect to dashboard
-        await goto('/dashboard');
-      } else {
-        // Some providers might require email verification
-        error = 'Please check your email for verification link';
-      }
-    } catch (e) {
-      error = e instanceof Error ? e.message : 'An error occurred';
-    } finally {
-      loading = false;
-    }
-  }
+	import { goto } from '$app/navigation';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardFooter,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
+	import * as Form from '$lib/components/ui/form';
+	import { superForm } from 'sveltekit-superforms';
+	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { registerSchema } from '$lib/components/Auth/schemas/auth.schema';
+	import { Loader2 } from 'lucide-svelte';
+
+	const { form: formInit } = $props();
+
+	const form = superForm(formInit, {
+		validators: zodClient(registerSchema)
+	});
+
+	const { form: formData, enhance, submitting } = form;
 </script>
 
-<div class="flex items-center justify-center min-h-screen">
-  <Card class="w-full max-w-md">
-    <CardHeader>
-      <CardTitle>Create an account</CardTitle>
-      <CardDescription>
-        Enter your email below to create your account
-      </CardDescription>
-    </CardHeader>
-    
-    <CardContent>
-      <form on:submit|preventDefault={handleSubmit} class="space-y-4">
-        <div class="space-y-2">
-          <Label for="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="name$libexample.com"
-            bind:value={email}
-            required
-            disabled={loading}
-          />
-        </div>
-        
-        <div class="space-y-2">
-          <Label for="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            bind:value={password}
-            required
-            disabled={loading}
-          />
-        </div>
-        
-        <div class="space-y-2">
-          <Label for="confirm-password">Confirm Password</Label>
-          <Input
-            id="confirm-password"
-            type="password"
-            bind:value={confirmPassword}
-            required
-            disabled={loading}
-          />
-        </div>
-        
-        {#if error}
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        {/if}
-        
-        <Button type="submit" class="w-full" disabled={loading}>
-          {loading ? 'Creating account...' : 'Sign up'}
-        </Button>
-      </form>
-    </CardContent>
-    
-    <CardFooter class="flex flex-col space-y-4">
-      <div class="text-sm text-center text-muted-foreground">
-        Already have an account?
-        <a href="/login" class="text-primary hover:underline">Sign in</a>
-      </div>
-    </CardFooter>
-  </Card>
+<div class="flex w-1/2 min-h-screen items-center justify-center">
+	<Card class="w-full">
+		<CardHeader>
+			<CardTitle>Create an account</CardTitle>
+			<CardDescription>Enter your email below to create your account</CardDescription>
+		</CardHeader>
+
+		<CardContent>
+			<form method="POST" use:enhance>
+				<Form.Field {form} name="email" class="mb-4 space-y-4">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Email</Form.Label>
+							<Input {...props} bind:value={$formData.email} />
+						{/snippet}
+					</Form.Control>
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Field {form} name="password" class="mb-4 space-y-4">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Password</Form.Label>
+							<Input type="password" {...props} bind:value={$formData.password} />
+						{/snippet}
+					</Form.Control>
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Field {form} name="confirmPassword" class="mb-4 space-y-4">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Confirm Password</Form.Label>
+							<Input type="password" {...props} bind:value={$formData.confirmPassword} />
+						{/snippet}
+					</Form.Control>
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Button size="sm" class="w-full" disabled={$submitting}>
+					{#if $submitting}
+						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+						Signing up...
+					{:else}
+						Sign up
+					{/if}
+				</Form.Button>
+			</form>
+		</CardContent>
+
+		<CardFooter class="flex flex-col space-y-4">
+			<div class="text-center text-sm text-muted-foreground">
+				Already have an account?
+				<a href="/login" class="text-primary hover:underline">Sign in</a>
+			</div>
+		</CardFooter>
+	</Card>
 </div>
