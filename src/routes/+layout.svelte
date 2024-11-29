@@ -20,9 +20,7 @@
   });
 </script>
 
-{#if browser}
-  <ModeWatcher />
-{/if}
+<ModeWatcher />
 <Sidebar.Provider>
   <AppSidebar {data} />
   <main class="w-full px-4 py-2">

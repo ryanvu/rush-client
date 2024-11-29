@@ -55,10 +55,14 @@
 						<DropdownMenu.Item>
 							{#snippet child({ props })}
 								{#if item.name === 'Sign Out'}
-									<div role="menuitem" tabindex={1} {...props} onclick={() => auth.signOut()}>
-										<item.icon />
-										<span>{item.name}</span>
-									</div>
+                  <div {...props}>
+                    <form action="/logout" method="POST">
+                      <button type="submit" class="flex gap-2 items-center">
+                        <item.icon />
+                        <span>{item.name}</span>
+                      </button>
+                    </form>
+                  </div>
 								{:else}
 									<a {...props} href={item.href}>
 										<item.icon />
