@@ -15,6 +15,7 @@
 	import { invalidate } from '$app/navigation';
 	import { tweened } from 'svelte/motion';
 	import {  linear } from 'svelte/easing';
+	import { auth } from '$lib/state/auth.svelte';
 
 	// Accept preloaded data as a prop
 	const { initialData } = $props<{ initialData: OnboardingResponse | null }>();
@@ -71,7 +72,8 @@
 	async function refreshOnboarding() {
 		loading = true;
 		try {
-			onboardingData = await getUserOnboarding();
+      const session = auth.getSession();
+			onboardingData = await getUserOnboarding(session);
 			await invalidate('onboarding:data');
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load onboarding data';

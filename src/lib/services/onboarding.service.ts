@@ -1,5 +1,5 @@
-import { createBrowserClient } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+// lib/services/onboarding.service.ts
+import type { Session } from '@supabase/supabase-js';
 
 export type OnboardingStep = {
   id: string;
@@ -13,39 +13,22 @@ export type OnboardingResponse = {
   is_complete: boolean;
 };
 
-// Create a function to get an authenticated fetch wrapper
-async function getAuthenticatedFetch() {
-  const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
-  const { data: { session } } = await supabase.auth.getSession();
-  
+// Accept session as a parameter instead of using auth store
+export async function getUserOnboarding(session?: Session | null): Promise<OnboardingResponse> {
   if (!session?.access_token) {
     throw new Error('No valid session');
   }
 
-  return async (url: string, options: RequestInit = {}) => {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/onboarding/progress`, {
+    headers: {
+      'Authorization': `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json'
     }
+  });
 
-    return response.json();
-  };
-}
-
-export async function getUserOnboarding(): Promise<OnboardingResponse> {
-  try {
-    const fetchWithAuth = await getAuthenticatedFetch();
-    return await fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/onboarding/progress`);
-  } catch (error) {
-    console.error('Error getting user onboarding data:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+
+  return response.json();
 }

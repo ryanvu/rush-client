@@ -1,4 +1,3 @@
-import { getServerSession } from '$lib/server/auth';
 import { fetchWithAuth } from '$lib/services/base-api.service';
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
