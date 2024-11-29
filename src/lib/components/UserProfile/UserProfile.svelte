@@ -7,6 +7,7 @@
 	import { userProfile } from './state/UserProfile.svelte';
 	import { profileUpdateSchema } from './state/UserProfile.schema';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+  import { Loader2 } from 'lucide-svelte';
 
 	let { profile, form: formInit } = $props();
 
@@ -22,7 +23,9 @@
 		validators: zodClient(profileUpdateSchema),
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, submitting } = form;
+
+  let buttonText = $derived($submitting ? 'Updating' : 'Update');
 </script>
 
 <Card.Root class="w-full">
@@ -58,6 +61,7 @@
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
+
 				<Form.Field {form} name="city">
 					<Form.Control>
 						{#snippet children({ props })}
@@ -78,10 +82,13 @@
 					<Form.FieldErrors />
 				</Form.Field>
 
-				<Form.Button size="sm">Update</Form.Button>
+				<Form.Button size="sm" class="self-end" disabled={$submitting}>
+          {#if $submitting}
+            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+          {/if}
+          {buttonText}
+        </Form.Button>
 			</form>
-		{:else if profile}
-			<div>Profile</div>
 		{/if}
 	</Card.Content>
 </Card.Root>
