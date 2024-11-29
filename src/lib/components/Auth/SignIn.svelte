@@ -1,90 +1,78 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { auth } from '$lib/state/auth.svelte'
+	import { goto } from '$app/navigation';
+	import { auth } from '$lib/state/auth.svelte';
+  import * as Form from '$lib/components/ui/form';
+	import { Input } from '$lib/components/ui/input';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardFooter,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
+	import { superForm } from 'sveltekit-superforms';
+	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { loginSchema } from '$lib/components/Auth/schemas/login.schema';
+  import { Loader2 } from 'lucide-svelte';
 
-  import { Button } from "$lib/components/ui/button";
-  import { Input } from "$lib/components/ui/input";
-  import { Label } from "$lib/components/ui/label";
-  import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "$lib/components/ui/card";
-  import { Alert, AlertDescription } from "$lib/components/ui/alert";
-  
-  let email = $state('');
-  let password = $state('');
-  let loading = $state(false)
-  let error: string | null = $state(null)
-  
-  $effect(() => {
-    if (auth.getUser()) {
-      goto('/dashboard');
-    }
-  });
-  
-  async function handleSubmit() {
-    loading = true
-    error = null
-    
-    try {
-      await auth.signIn(email, password)
-      // The navigation will be handled by the effect above
-    } catch (e) {
-      error = e instanceof Error ? e.message : 'An error occurred'
-    } finally {
-      loading = false
-    }
-  }
+	const { form: formInit } = $props();
+
+	const form = superForm(formInit, {
+		validators: zodClient(loginSchema)
+	});
+
+	const { form: formData, enhance, submitting } = form;
+
+	$effect(() => {
+		if (auth.getUser()) {
+			goto('/dashboard');
+		}
+	});
 </script>
 
-<div class="flex items-center justify-center min-h-screen">
-  <Card class="w-full max-w-md">
-    <CardHeader>
-      <CardTitle>Log in</CardTitle>
-      <CardDescription>
-        Enter your email and password below to log in
-      </CardDescription>
-    </CardHeader>
+<Card class="w-full max-w-md">
+	<CardHeader>
+		<CardTitle>Log in</CardTitle>
+		<CardDescription>Enter your email and password below to log in</CardDescription>
+	</CardHeader>
 
-    <CardContent>
-      <form onsubmit={handleSubmit} class="space-y-4">
-        <div class="space-y-2">
-          <Label for="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="name@example.com"
-            bind:value={email}
-            required
-            disabled={loading}
-          />
-        </div>
+	<CardContent>
+		<form method="POST" use:enhance>
+			<Form.Field {form} name="email" class="space-y-4 mb-4">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Email</Form.Label>
+						<Input {...props} bind:value={$formData.email} />
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
 
-        <div class="space-y-2">
-          <label for="password">Password</label>
-          <Input
-            id="password"
-            type="password"
-            bind:value={password}
-            required
-            disabled={loading}
-          />
-        </div>
-
-        {#if error}
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+			<Form.Field {form} name="password" class="space-y-4 mb-4">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Password</Form.Label>
+						<Input type="password" {...props} bind:value={$formData.password} />
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
+      <Form.Button size="sm" class="w-full" disabled={$submitting}>
+        {#if $submitting}
+          <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+          Logging in...
+        {:else}
+          Login
         {/if}
+      </Form.Button>
+		</form>
+	</CardContent>
 
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Loading...' : 'Sign In'}
-        </Button>
-      </form>
-    </CardContent>
-
-    <CardFooter class="flex flex-col space-y-4">
-      <div class="text-sm text-center text-muted-foreground">
-        Don't have an account?
-        <a href="/register" class="text-primary hover:underline">Sign Up</a>
-      </div>
-    </CardFooter>
-  </Card>
-</div>
+	<CardFooter class="flex flex-col space-y-4">
+		<div class="text-center text-sm text-muted-foreground">
+			Don't have an account?
+			<a href="/register" class="text-primary hover:underline">Sign Up</a>
+		</div>
+	</CardFooter>
+</Card>

@@ -80,25 +80,6 @@ class Auth {
     }
   }
 
-	async signIn(email: string, password: string) {
-		this.throwIfNoClient();
-
-		try {
-			const { data, error } = await this.supabase?.auth.signInWithPassword({
-				email,
-				password
-			});
-
-			if (error) throw error;
-			await invalidate('supabase:auth');
-
-			return data;
-		} catch (error) {
-			const authError = error as AuthError;
-			throw new Error(authError.message);
-		}
-	}
-
 	async signUp(email: string, password: string) {
 		this.throwIfNoClient();
 
