@@ -14,7 +14,7 @@ export type OnboardingResponse = {
 };
 
 // Accept session as a parameter instead of using auth store
-export async function getUserOnboarding(session?: Session | null): Promise<OnboardingResponse> {
+export async function getUserOnboarding(fetch: typeof window.fetch, session?: Session | null): Promise<OnboardingResponse> {
   if (!session?.access_token) {
     throw new Error('No valid session');
   }

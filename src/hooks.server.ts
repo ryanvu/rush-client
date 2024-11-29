@@ -33,23 +33,25 @@ const supabase: Handle = async ({ event, resolve }) => {
    */
   event.locals.safeGetSession = async () => {
     const {
-      data: { session },
-    } = await event.locals.supabase.auth.getSession()
+      data: { session }
+    } = await event.locals.supabase.auth.getSession();
     if (!session) {
-      return { session: null, user: null }
+      return { session: null, user: null };
     }
 
     const {
       data: { user },
-      error,
-    } = await event.locals.supabase.auth.getUser()
+      error
+    } = await event.locals.supabase.auth.getUser();
     if (error) {
       // JWT validation has failed
-      return { session: null, user: null }
+      return { session: null, user: null };
     }
 
-    return { session, user }
-  }
+    delete session?.user;
+
+    return { session: Object.assign({}, session, { user }), user };
+  };
 
   return resolve(event, {
     filterSerializedResponseHeaders(name) {

@@ -1,5 +1,5 @@
 import { fetchWithAuth } from '$lib/services/base-api.service';
-import { fail, redirect, type Actions } from '@sveltejs/kit';
+import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -25,7 +25,6 @@ export const load: PageServerLoad = async ({ parent, event }) => {
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
-    const { supabase } = locals;
 		const formData = await request.formData();
 
 		const form = await superValidate(formData, zod(profileUpdateSchema));
@@ -35,7 +34,7 @@ export const actions: Actions = {
 		}
 
 		try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await locals.safeGetSession();
       const userId = session?.user?.id;
 			const response = await fetchWithAuth(
 				`/api/user/profile/${userId}`,
