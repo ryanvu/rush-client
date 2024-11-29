@@ -21,17 +21,16 @@
 
 	const form = superForm(formInit, {
 		validators: zodClient(profileUpdateSchema),
-	});
+	}, { });
 
-	const { form: formData, enhance, submitting } = form;
-
+	const { form: formData, enhance, submitting, tainted, isTainted } = form;
   let buttonText = $derived($submitting ? 'Updating' : 'Update');
 </script>
 
 <Card.Root class="w-full">
 	<Card.Content>
 		{#if isEditing}
-			<form method="POST" use:enhance>
+			<form method="POST" class="flex flex-col gap-2" use:enhance>
 				<Form.Field {form} name="first_name">
 					<Form.Control>
 						{#snippet children({ props })}
@@ -82,7 +81,7 @@
 					<Form.FieldErrors />
 				</Form.Field>
 
-				<Form.Button size="sm" class="self-end" disabled={$submitting}>
+				<Form.Button size="sm" class="self-end" disabled={!isTainted($tainted) || $submitting}>
           {#if $submitting}
             <Loader2 class="mr-2 h-4 w-4 animate-spin" />
           {/if}
