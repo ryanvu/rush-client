@@ -1,22 +1,21 @@
-import { redirect } from '@sveltejs/kit';
 import type { LayoutLoad } from './$types';
-import { browser } from '$app/environment';
-import { supabase } from '$lib/supabase';
+import { getUserOnboarding } from '$lib/services/onboarding.service';
 
-export const load: LayoutLoad = async () => {
-  if (browser) {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw redirect(303, '/login');
+export const load: LayoutLoad = async ({ parent }) => {
+  const { session } = await parent();
+  
+  // Only fetch onboarding data if we have a session
+  let onboardingData = null;
+  if (session) {
+    try {
+      onboardingData = await getUserOnboarding();
+    } catch (error) {
+      console.error('Failed to load onboarding data:', error);
     }
-
-    // Return the user data for any child routes that need it
-    return {
-      user: session.user
-    };
   }
 
-  // Return nothing on server side render
-  return {};
+  return {
+    user: session?.user ?? null,
+    onboardingData
+  };
 };

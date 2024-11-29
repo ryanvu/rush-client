@@ -1,16 +1,21 @@
-import { createClient } from '@supabase/supabase-js';
+// lib/supabase.ts
+import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { browser } from '$app/environment';
+import type { Database } from '../shared/types/database.types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    storageKey: 'supabase.auth',
-    storage: browser ? window.localStorage : undefined,
-    detectSessionInUrl: true,
-  }
-});
-
+export const supabase = browser 
+  ? createBrowserClient<Database>(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY
+    )
+  : createServerClient<Database>(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get: () => '',
+          set: () => {},
+          remove: () => {}
+        }
+      }
+    );

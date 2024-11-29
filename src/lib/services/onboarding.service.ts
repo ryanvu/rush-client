@@ -1,3 +1,6 @@
+import { createBrowserClient } from '@supabase/ssr';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+
 export type OnboardingStep = {
   id: string;
   completed: boolean;
@@ -10,28 +13,39 @@ export type OnboardingResponse = {
   is_complete: boolean;
 };
 
-export async function getUserOnboarding(): Promise<OnboardingResponse> {
+// Create a function to get an authenticated fetch wrapper
+async function getAuthenticatedFetch() {
+  const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session?.access_token) {
+    throw new Error('No valid session');
+  }
 
-  try {
-    const supabaseSession = JSON.parse(localStorage.getItem('supabase.auth') || '{}');
-    const accessToken = supabaseSession?.access_token;
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/onboarding/progress`, {
+  return async (url: string, options: RequestInit = {}) => {
+    const response = await fetch(url, {
+      ...options,
       headers: {
-        'Authorization': `Bearer ${accessToken}`, 
+        ...options.headers,
+        'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json'
       }
     });
 
-    if (!response.ok) { // Check if
+    if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error getting user onboarding data:', error);
-    throw error; // Re-throw the error so the component can handle it
-  }
+    return response.json();
+  };
 }
 
-
+export async function getUserOnboarding(): Promise<OnboardingResponse> {
+  try {
+    const fetchWithAuth = await getAuthenticatedFetch();
+    return await fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/onboarding/progress`);
+  } catch (error) {
+    console.error('Error getting user onboarding data:', error);
+    throw error;
+  }
+}

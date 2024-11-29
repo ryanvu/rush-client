@@ -5,5 +5,5 @@
 </script>
 
 {#if user}
-  <Onboarding />
+  <Onboarding initialData={data.onboardingData} />
 {/if}

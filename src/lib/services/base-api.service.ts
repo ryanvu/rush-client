@@ -1,20 +1,32 @@
 const API_URL = import.meta.env.VITE_API_URL;
+import { browser } from '$app/environment';
+import { supabase } from '$lib/supabase';
 
-export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-	const supabaseSession = JSON.parse(localStorage.getItem('supabase.auth') || '{}');
-	const accessToken = supabaseSession?.access_token;
+export async function fetchWithAuth(endpoint: string, serverToken?: string, options: RequestInit = {}) {
+  let accessToken;
+  
+  if (browser) {
+    const session = await supabase.auth.getSession();
+    accessToken = session.data?.session?.access_token;
+  } else {
+    // Use supabaseServer for server-side requests
+    accessToken = serverToken;
+  }
 
-	const headers = new Headers(options.headers);
-	headers.set('Authorization', `Bearer ${accessToken}`);
+  const headers = new Headers(options.headers);
 
-	const response = await fetch(`${API_URL}${endpoint}`, {
-		...options,
-		headers
-	});
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`);
+  }
 
-	if (!response.ok) {
-		throw new Error(`API error: ${response.statusText}`);
-	}
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers
+  });
 
-	return response.json();
+  if (!response.ok) {
+    throw new Error(`API error: ${response.statusText}`);
+  }
+
+  return response.json();
 }

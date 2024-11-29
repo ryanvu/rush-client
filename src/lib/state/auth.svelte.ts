@@ -1,24 +1,23 @@
-import { goto } from '$app/navigation';
+// lib/auth.ts
 import { browser } from '$app/environment';
 import type { User } from '@supabase/supabase-js';
-import { supabase } from '$lib/supabase';
+import { invalidate } from '$app/navigation';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { createBrowserClient } from '@supabase/ssr';
 
 class Auth {
   private user = $state<User | null>(null);
+  private supabase = browser 
+    ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY)
+    : null;
 
   constructor() {
     if (browser) {
-      // Initialize store with session if available (client-side only)
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          this.user = session.user;
-        }
-      });
-
-      // Listen for auth changes (client-side only)
-      supabase.auth.onAuthStateChange((_event, session) => {
-        console.log('Auth state changed:', session); // Debug log
+      // Subscribe to auth state changes
+      this.supabase?.auth.onAuthStateChange((_event, session) => {
         this.user = session?.user ?? null;
+        // Invalidate all Supabase dependencies to trigger reloads
+        invalidate('supabase:auth');
       });
     }
   }
@@ -28,47 +27,36 @@ class Auth {
   }
 
   async signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+    const { data, error } = await this.supabase.auth.signInWithPassword({
       email,
-      password,
+      password
     });
     if (error) throw error;
-    this.user = data.user;
     return data;
   }
 
   async signUp(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+    const { data, error } = await this.supabase.auth.signUp({
       email,
-      password,
+      password
     });
     if (error) throw error;
-    if (data.session?.user) {
-      this.user = data.session.user;
-    }
     return data;
   }
 
   async signOut() {
-    const { error } = await supabase.auth.signOut();
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+    const { error } = await this.supabase.auth.signOut();
     if (error) throw error;
-    this.user = null;
-    await goto('/');
   }
 
   async resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email);
     if (error) throw error;
-  }
-
-  async refreshSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      this.user = session.user;
-    }
-    return session;
   }
 }
 
-// Export a singleton instance
 export const auth = new Auth();
